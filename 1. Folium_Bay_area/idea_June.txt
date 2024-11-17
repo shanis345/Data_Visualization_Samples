@@ -1,0 +1,75 @@
+If using machine learning
+
+Can I get the customer locations? 
+If possible, I can do clustering
+then load the station db and find the closest station from each cluster
+that could be a solution to find the ideal set
+
+in file 2, Cant understand what transfer time means
+
+1. In the customer table we have city, street, state, zip code
+With this information, can we identify the location of the customer? 
+If possible, (at least approximately) we may be able to cluster customers and find the most ideal station to use as delivery hub
+
+convert zipcodes into longitude latitude?
+
+Extract all observations and zipcodes from customers
+add 2 columns with python library (longitude and latitude)
+plot them as scatter plot on long-lat x-y axis
+- May use folium or google map
+
+Use K-means to do clustering
+Find the final centroid of each cluster
+find the closest station in BART (for each line) from the centroid
+Plot BART stations on the visualization
+Plot the distance lines
+
+We can find the closest station per 'line' since we have a lot of lines passing by.
+Finding the station that is closest with many lines passing by would be a more effective approach
+
+Make our decision 
+
+Finally plot that relationship as graphs in Neo4J (hard part)
+
+
+
+def add_lines():
+    # Define colors
+    line_colors = {
+        "yellow": "yellow",
+        "red": "red",
+        "green": "green",
+        "orange": "orange",
+        "blue": "blue",
+        "gray": "gray"
+    }
+    
+    # Offset dictionary 
+    line_offsets = {
+        "yellow": (0.001, 0.001),
+        "red": (0.002, 0.002),
+        "green": (-0.001, 0.001),
+        "orange": (-0.002, -0.002),
+        "blue": (0.001, -0.001),
+        "gray": (-0.001, -0.002)
+    } 
+    
+    # Plot lines for each unique line
+    for line in line_df['line'].unique():
+        line_stations = line_df[line_df['line'] == line]
+        
+        # Merge with stations_df
+        line_coords = line_stations.merge(stations_df, on='station')
+        
+        # Extract latitude and longitude with offsets applied
+        offset_lat, offset_lon = line_offsets[line]
+        coordinates = [(lat + offset_lat, lon + offset_lon) 
+                       for lat, lon in zip(line_coords['latitude'], line_coords['longitude'])]
+        
+        # Add the line to the map
+        folium.PolyLine(
+            locations=coordinates,
+            color=line_colors[line],
+            weight=3,  # Line thickness
+            opacity=0.8,
+        ).add_to(m)
